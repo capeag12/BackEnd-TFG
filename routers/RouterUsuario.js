@@ -38,8 +38,9 @@ router.post("/usuarios/loginToken", auth, async (req, res) => {
     
     try{
         let usuario = await Usuario.findById(req.usuario._id).populate('almacenes');
-        console.log(usuario.almacenes);
         res.status(200).send({usuario:usuario,almacenes:usuario.almacenes});
+        console.log("Sesion iniciada");
+
     }
     catch (error) {
         res.status(400).send("El login no fue posible");
