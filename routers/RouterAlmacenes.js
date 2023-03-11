@@ -18,4 +18,19 @@ router.post("/almacenes/crearAlmacen", auth, async (req, res) => {
     }
 });
 
+router.delete("/almacenes/eliminarAlmacen/:id", auth, async (req, res) => {
+    try{
+        const almacen = await Almacen.findOneAndDelete({_id: req.params.id, owner: req.usuario._id});
+        if (!almacen) {
+            return res.status(404).send();
+        }
+        return res.status(204).send(almacen);
+    }
+    catch (error) {
+        return res.status(500).send();
+    }
+});
+    
+
+
 module.exports = router;
