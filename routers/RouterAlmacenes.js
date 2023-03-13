@@ -35,19 +35,22 @@ router.delete("/almacenes/eliminarAlmacen/:id", auth, async (req, res) => {
 
 router.put("/almacenes/addProducto/:id", auth, async (req, res) => {
     try{
+        const item = new Item(req.body);
         const almacen = await Almacen.findOne({_id: req.params.id, owner: req.usuario._id});
-        const item = await Item.exists({nombre: req.body.nombre, descripcion: req.body.descripcion});
+        const itemBuscar = await Item.exists({nombre: req.body.nombre, descripcion: req.body.descripcion});
         if (!almacen) {
             return res.status(404).send();
         }
-        if (!item) {
-            Item.save(req.body);
+        if (!itemBuscar) {
+            await item.save();
         }
-        AlmacenItem.save({item: item._id, almacen: almacen._id, cantidad: req.body.cantidad});
+        const almacenItem = new AlmacenItem({item: item._id, almacen: almacen._id, cantidad: req.body.cantidad});
+        await almacenItem.save();
 
         return res.status(200).send(almacen);
     }
     catch (error) {
+        console.log(error);
         return res.status(500).send();
     }
 });
