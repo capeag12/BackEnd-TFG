@@ -1,6 +1,4 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 
 const almacenSchema = new mongoose.Schema({
     nombre: {
@@ -18,18 +16,7 @@ const almacenSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    items: [{
-        nombre: {
-            type: String,
-            required: true,
-            ref: 'Item'
-        },
-        cantidad: {
-            type: Number,
-            required: true,
-            default: 0
-        }
-    }],
+    
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
