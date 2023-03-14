@@ -17,7 +17,22 @@ const almacenItemSchema = new mongoose.Schema({
         trim: true
     },
     
-});
+},{
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+    });
+
+almacenItemSchema.methods.toJSON = function () {
+    const almacenItem = this;
+    const almacenItemObject = almacenItem.toObject();
+
+    delete almacenItemObject._id;
+    delete almacenItemObject.__v;
+    delete almacenItemObject.id;
+
+    return almacenItemObject;
+}
+
 
 const AlmacenItem = mongoose.model('AlmacenItem', almacenItemSchema);
 module.exports = AlmacenItem;

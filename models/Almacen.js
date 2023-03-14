@@ -24,6 +24,12 @@ const almacenSchema = new mongoose.Schema({
     }
 });
 
+almacenSchema.virtual('items', {
+    ref: 'AlmacenItem',
+    localField: '_id',
+    foreignField: 'almacen'
+});
+
 
 const Almacen = mongoose.model('Almacen', almacenSchema);
 

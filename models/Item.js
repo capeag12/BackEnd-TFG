@@ -6,8 +6,8 @@ const itemSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    descripcion: {
-        type: String,
+    valor: {
+        type: Number,
         required: true,
         trim: true
     },
