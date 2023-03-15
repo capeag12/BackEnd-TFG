@@ -66,7 +66,7 @@ router.get("/almacenes/getItemsAlmacen/:id", auth, async (req, res) => {
             let itemFind = await Item.findById(almacen.items[i].item._id);
             itemFind.cantidad = almacen.items[i].cantidad;
             console.log(itemFind);
-            items.push({nombre: itemFind.nombre, valor: itemFind.valor, cantidad: almacen.items[i].cantidad});
+            items.push({item:itemFind, cantidad: almacen.items[i].cantidad});
         }
         return res.status(200).send(items);
     }
