@@ -47,7 +47,7 @@ router.put("/almacenes/addProducto/:id", auth, async (req, res) => {
         const almacenItem = new AlmacenItem({item: item._id, almacen: almacen._id, cantidad: req.body.cantidad});
         await almacenItem.save();
 
-        return res.status(200).send(almacen);
+        return res.status(201).send({id:almacenItem.id,cantidad: almacenItem.cantidad, item: item});
     }
     catch (error) {
         console.log(error);
