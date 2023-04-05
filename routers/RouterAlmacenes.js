@@ -76,6 +76,11 @@ router.get("/almacenes/getItemsAlmacen/:id", auth, async (req, res) => {
     }
 });
 
+router.put("/almacenes/actualizarMercancia", auth, async (req, res) => {
+    console.log(req.body);
+});
+
+
     
 
 
