@@ -33,6 +33,5 @@ almacenItemSchema.methods.toJSON = function () {
     return almacenItemObject;
 }
 
-
 const AlmacenItem = mongoose.model('AlmacenItem', almacenItemSchema);
 module.exports = AlmacenItem;

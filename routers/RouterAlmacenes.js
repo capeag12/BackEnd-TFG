@@ -77,7 +77,57 @@ router.get("/almacenes/getItemsAlmacen/:id", auth, async (req, res) => {
 });
 
 router.put("/almacenes/actualizarMercancia", auth, async (req, res) => {
-    console.log(req.body.restados[0].item);
+    try {
+        console.log(req.body);
+        let restados = req.body.restados;
+        let listaRestados = [];
+        let listaVaciosOriginal=[]
+        let almacenItemCambiados = [];
+        restados.forEach(element => {
+            let diferenciaCantidad = element.cantidad - element.cantidadCambiada;
+            if(element.cantidadCambiada == 0){
+                listaVaciosOriginal.push(element.id);
+            } else{
+                let almacenItemOriginal = new AlmacenItem({_id: element.id, item: element.item.id, almacen: req.body.start, cantidad: element.cantidadCambiada});
+                almacenItemCambiados.push(almacenItemOriginal);
+            }
+            console.log("Lista vacios");
+            console.log(listaVaciosOriginal);
+
+            console.log("Lista cambiados");
+            console.log(almacenItemCambiados);
+
+            let nuevoItem = new AlmacenItem({item: element.item.id, almacen: req.body.end, cantidad: diferenciaCantidad});
+            listaRestados.push(nuevoItem);
+        });
+        listaRestados.forEach(async element => {
+            let itemTraido = await AlmacenItem.findOne({item: element.item, almacen: element.almacen});
+            
+            if (itemTraido) {
+                itemTraido.cantidad += element.cantidad;
+                console.log(element);
+                itemTraido.save();
+            }
+            else
+            {
+                console.log("No existe")
+                console.log(element);
+                await element.save();
+            }
+
+        });
+        await AlmacenItem.deleteMany({_id: {$in: listaVaciosOriginal}});
+        almacenItemCambiados.forEach(async element => {
+           await AlmacenItem.updateOne({_id: element._id}, element);
+        });
+        
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send();
+        
+    }
+
+
     
     
 
