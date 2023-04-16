@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const movimientoSchema = new mongoose.Schema({
     almacenOrigen: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true,
+        required: false,
         ref: 'Almacen'
     },
     almacenDestino: {
@@ -11,13 +11,19 @@ const movimientoSchema = new mongoose.Schema({
         required: true,
         ref: 'Almacen'
     },
+    tipo: {
+        type: String,
+        required: true,
+        enum: ['Entrada', 'Salida'],
+        trim: true
+    },
     items: [{
         item: {
             type: mongoose.Schema.Types.ObjectId,
             required: true,
-            ref: 'AlmacenItem'
+            ref: 'Item'
         },
-        cantidadInicial: {
+        diferencia: {
             type: Number,
             required: true,
             default: 0
@@ -35,3 +41,4 @@ const movimientoSchema = new mongoose.Schema({
 
 
 const Movimiento = mongoose.model('Movimiento', movimientoSchema);
+module.exports = Movimiento;

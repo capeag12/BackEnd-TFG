@@ -3,7 +3,8 @@ const auth = require('../middleware/auth');
 const Almacen = require('../models/Almacen');
 const AlmacenItem = require('../models/AlmacenItem');
 const Item = require('../models/Item');
-const Usuario = require('../models/Usuario')
+const Usuario = require('../models/Usuario');
+const Movimiento = require('../models/movimiento');
 const router = new express.Router();
 
 router.post("/almacenes/crearAlmacen", auth, async (req, res) => {
@@ -65,7 +66,7 @@ router.get("/almacenes/getItemsAlmacen/:id", auth, async (req, res) => {
         for (let i = 0; i < almacen.items.length; i++) {
             let itemFind = await Item.findById(almacen.items[i].item._id);
             itemFind.cantidad = almacen.items[i].cantidad;
-            console.log(itemFind);
+            
             items.push({id: almacen.items[i]._id, item:itemFind, cantidad: almacen.items[i].cantidad});
         }
         return res.status(200).send(items);
@@ -78,25 +79,27 @@ router.get("/almacenes/getItemsAlmacen/:id", auth, async (req, res) => {
 
 router.put("/almacenes/actualizarMercancia", auth, async (req, res) => {
     try {
-        console.log(req.body);
         let restados = req.body.restados;
+        let added = req.body.added;
         let listaRestados = [];
         let listaVaciosOriginal=[]
         let almacenItemCambiados = [];
+        let movimientos = [];
+        let listaItemsRestados = [];
         restados.forEach(element => {
             let diferenciaCantidad = element.cantidad - element.cantidadCambiada;
+            let diff  = element.cantidadCambiada - element.cantidad;
+            
+            let itemMovimiento = {item: element.item.id, diferencia: diff};
+            listaItemsRestados.push(itemMovimiento);
+
             if(element.cantidadCambiada == 0){
                 listaVaciosOriginal.push(element.id);
             } else{
                 let almacenItemOriginal = new AlmacenItem({_id: element.id, item: element.item.id, almacen: req.body.start, cantidad: element.cantidadCambiada});
                 almacenItemCambiados.push(almacenItemOriginal);
             }
-            console.log("Lista vacios");
-            console.log(listaVaciosOriginal);
-
-            console.log("Lista cambiados");
-            console.log(almacenItemCambiados);
-
+            
             let nuevoItem = new AlmacenItem({item: element.item.id, almacen: req.body.end, cantidad: diferenciaCantidad});
             listaRestados.push(nuevoItem);
         });
@@ -105,21 +108,54 @@ router.put("/almacenes/actualizarMercancia", auth, async (req, res) => {
             
             if (itemTraido) {
                 itemTraido.cantidad += element.cantidad;
-                console.log(element);
                 itemTraido.save();
             }
             else
             {
-                console.log("No existe")
-                console.log(element);
                 await element.save();
             }
 
         });
+
+        if (listaItemsRestados.length > 0) {
+            let movimientoRestado = new Movimiento({
+                almacenOrigen: req.body.start,
+                almacenDestino: req.body.end,
+                tipo: "Salida",
+                items: listaItemsRestados,
+                owner: req.usuario._id
+            })
+            movimientos.push(movimientoRestado);
+        }
+        
+        if (added.length > 0) {
+            let listaItemsAdded = [];
+            added.forEach(async element => {
+                console.log(element);
+                let diferencia = element.cantidadCambiada - element.cantidad;
+                await AlmacenItem.updateOne({_id: element.id}, {cantidad: element.cantidadCambiada});
+                listaItemsAdded.push({item:element.item.id,diferencia:diferencia });
+            });
+            let movimientoAdded = new Movimiento({
+                almacenDestino: req.body.start,
+                tipo: "Entrada",
+                items: listaItemsAdded,
+                owner: req.usuario._id
+                
+            }) 
+            movimientos.push(movimientoAdded);
+            
+        }
+            
+        
+
+            
         await AlmacenItem.deleteMany({_id: {$in: listaVaciosOriginal}});
         almacenItemCambiados.forEach(async element => {
-           await AlmacenItem.updateOne({_id: element._id}, element);
+           await AlmacenItem.updateOne({_id: element.id}, element);
         });
+        await Movimiento.insertMany(movimientos);
+        return res.status(200).send();
         
     } catch (error) {
         console.log(error);
