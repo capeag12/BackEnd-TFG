@@ -4,7 +4,8 @@ const Almacen = require('../models/Almacen');
 const AlmacenItem = require('../models/AlmacenItem');
 const Item = require('../models/Item');
 const Usuario = require('../models/Usuario');
-const Movimiento = require('../models/movimiento');
+const Movimiento = require('../models/Movimiento');
+
 const router = new express.Router();
 
 router.post("/almacenes/crearAlmacen", auth, async (req, res) => {
@@ -148,8 +149,6 @@ router.put("/almacenes/actualizarMercancia", auth, async (req, res) => {
         }
             
         
-
-            
         await AlmacenItem.deleteMany({_id: {$in: listaVaciosOriginal}});
         almacenItemCambiados.forEach(async element => {
            await AlmacenItem.updateOne({_id: element.id}, element);

@@ -12,6 +12,9 @@ app.use(express.json());
 app.use(userRouter);
 app.use(almacenRouter);
 
+app.set('trust proxy', true)
+
 app.listen(port, () => {
     console.log('Server is up on port ' + port);
+    
 });

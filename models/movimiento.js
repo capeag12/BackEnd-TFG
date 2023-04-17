@@ -35,10 +35,27 @@ const movimientoSchema = new mongoose.Schema({
         ref: 'Usuario'
     }
 
+},{
+    timestamps: true
 });
 
+movimientoSchema.virtual('origen', {
+    ref: 'Almacen',
+    localField: 'almacenOrigen',
+    foreignField: '_id'
+});
 
+movimientoSchema.virtual('destino', {
+    ref: 'Almacen',
+    localField: 'almacenDestino',
+    foreignField: '_id'
+});
 
+movimientoSchema.virtual('itemsDiferencia', {
+    ref: 'Item',
+    localField: 'items.item',
+    foreignField: '_id'
+});
 
 const Movimiento = mongoose.model('Movimiento', movimientoSchema);
 module.exports = Movimiento;
