@@ -17,7 +17,7 @@ router.post("/usuarios/registrarUsuario", async (req, res) => {
         const token = await usuario.generateAuthToken();
         res.status(201).send({usuario, token});
         } catch (error) {
-            res.status(400).send(error);
+            res.status(400).send({error: 'No se pudo crear el usuario'});
         }
 });
 
@@ -30,7 +30,7 @@ router.post("/usuarios/login", async (req, res) => {
         res.send({usuario, token});
     } catch (error) {
         console.log(error);
-        res.status(400).send("El login no fue posible");
+        res.status(400).send({error:'El login no fue posible'});
     }
 });
 
@@ -43,7 +43,7 @@ router.post("/usuarios/loginToken", auth, async (req, res) => {
 
     }
     catch (error) {
-        res.status(400).send("El login no fue posible");
+        res.status(400).send({error:'El login no fue posible'});
     }
 });
 
@@ -55,7 +55,7 @@ router.post("/usuarios/logout", auth, async (req, res) => {
         await req.usuario.save();
         res.send("Logout exitoso");
     } catch (error) {
-        res.status(500).send();
+        res.status(500).send({error:'No se pudo realizar correctamente el logout'});
     }
 });
 
@@ -65,7 +65,7 @@ router.post("/usuarios/logoutAll", auth, async (req, res) => {
         await req.usuario.save();
         res.send("Logout exitoso");
     } catch (error) {
-        res.status(500).send();
+        res.status(500).send({error:'No se pudo realizar correctamente el logout'});
     }
 });
 
