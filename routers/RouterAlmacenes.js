@@ -131,11 +131,12 @@ router.put("/almacenes/actualizarMercancia", auth, async (req, res) => {
         
         if (added.length > 0) {
             let listaItemsAdded = [];
-            added.forEach(async element => {
+            added.forEach(async (element) => {
                 console.log(element);
                 let diferencia = element.cantidadCambiada - element.cantidad;
-                await AlmacenItem.updateOne({_id: element.id}, {cantidad: element.cantidadCambiada});
                 listaItemsAdded.push({item:element.item.id,diferencia:diferencia });
+                await AlmacenItem.updateOne({_id: element.id}, {cantidad: element.cantidadCambiada});
+                
             });
             let movimientoAdded = new Movimiento({
                 almacenDestino: req.body.start,
@@ -144,6 +145,7 @@ router.put("/almacenes/actualizarMercancia", auth, async (req, res) => {
                 owner: req.usuario._id
                 
             }) 
+            console.log(movimientoAdded);
             movimientos.push(movimientoAdded);
             
         }
