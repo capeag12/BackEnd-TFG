@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style >
+        .almacenesData{
+            width: 100%;
+            float: left;
+        }
+
+        #dt{
+            width: 80%;
+            float: left;
+            margin-left: 10%;
+            margin-right: 10%;
+
+        }
+
+        #nombreTH{
+            text-align: left;
+        }
+
+        #cantidadTH{
+            text-align: left;
+        }
+
+        tr{
+            margin-top: 20px;
+            margin-bottom: 7px;
+            border: 2px solid black;
+        }
+
+        td{
+            border: 2px solid black;
+            border-collapse: collapse;
+            padding: 5px;
+        }
+
+        table{
+            border: 2px solid black;
+            border-collapse: collapse;
+        }
+        th{
+            border: 2px solid black;
+            border-collapse: collapse;
+            padding: 5px;
+        }
+
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: red;
+            color: white;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    
+
+    <div class="almacenesData">
+        <table id="dt">
+            <thead>
+                <tr>
+                    <th id="nombreTH">Nombre</th>
+                    <th id="cantidadTH">Precio</th>
+                    <th id="cantidadTH">Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each items}}
+                <tr class="trow">
+                    <td>{{this.nombre}}</td>
+                    <td>{{this.valor}} €</td>
+                    <td>{{this.cantidad}}</td>
+                </tr>
+                {{/each}}
+                
+            </tbody>
+        </table>
+    </div>
+    
+</body>
+</html>
