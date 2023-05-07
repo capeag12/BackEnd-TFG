@@ -124,6 +124,7 @@ router.get("/movimientos/getPDF/:id", auth, async (req, res) => {
 
         let pdfResult = await pdf.create(document, options)
         res.status(200).sendFile(pdfResult.filename)
+        
     }
     catch (error) {
         console.log(error);
