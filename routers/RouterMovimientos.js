@@ -12,7 +12,7 @@ const router = new express.Router();
 
 router.get("/movimientos/getAllMovements", auth, async (req, res) => {
     try{
-        const movimientos = await Movimiento.find({owner: req.usuario._id}).populate('itemsDiferencia').populate('destino').populate('origen');
+        const movimientos = await Movimiento.find({owner: req.usuario._id}).populate('itemsDiferencia').populate('destino').populate('origen').sort({createdAt: -1});
     
         let movimientosEnviar = []
 
@@ -40,7 +40,6 @@ router.get("/movimientos/getAllMovements", auth, async (req, res) => {
             movimientosEnviar.push(movimientoEnviar)
 
         })
-
         console.log(movimientosEnviar)
         return res.status(200).send(movimientosEnviar);
 
@@ -78,9 +77,20 @@ router.get("/movimientos/getPDF/:id", auth, async (req, res) => {
             
         }
 
+        let origin
+
+        if (movimiento.origen[0] == null) {
+            origin = "Añadido desde almacen externo"
+        }
+        else{
+            origin = movimiento.origen[0].nombre
+        }
+            
+        
+
         let data = {
             items: itemsHTML,
-            almacenOrigen: movimiento.origen[0].nombre,
+            almacenOrigen: origin,
             almacenDestino: movimiento.destino[0].nombre,
             fecha: movimiento.createdAt
 
@@ -118,12 +128,14 @@ router.get("/movimientos/getPDF/:id", auth, async (req, res) => {
         var document = {
             html: html,
             data:data ,
-            path: "./pdfTemplates/movementPDF.pdf",
+            path: `./pdfTemplates/${movimiento._id}.pdf`,
             type: "",
         };
 
         let pdfResult = await pdf.create(document, options)
         res.status(200).sendFile(pdfResult.filename)
+        console.log(pdfResult.filename)
+        fs.unlink(pdfResult.filename, (err) => {});
         
     }
     catch (error) {

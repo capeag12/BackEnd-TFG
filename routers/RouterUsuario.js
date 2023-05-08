@@ -22,12 +22,20 @@ router.post("/usuarios/registrarUsuario", async (req, res) => {
 });
 
 router.post("/usuarios/login", async (req, res) => {
+    console.log("Realizando login");
     try {
         console.log(req.body);
         const usuario = await Usuario.findByCredentials(req.body.email, req.body.password);
-        const token = await usuario.generateAuthToken();
         
-        res.send({usuario, token});
+        if (!usuario) {
+            return res.status(401).send({error: 'El usuario o la contraseña son incorrectos'});
+        } else{
+            const token = await usuario.generateAuthToken();
+        
+            res.send({usuario, token});
+        }
+        
+        
     } catch (error) {
         console.log(error);
         res.status(400).send({error:'El login no fue posible'});
@@ -56,6 +64,17 @@ router.post("/usuarios/logout", auth, async (req, res) => {
         res.send("Logout exitoso");
     } catch (error) {
         res.status(500).send({error:'No se pudo realizar correctamente el logout'});
+    }
+});
+
+router.get("/usuarios/me", auth, async (req, res) => {
+    try{
+        let usuario = await Usuario.findById(req.usuario._id).populate('almacenes');
+        let cantidadAlmacenes = usuario.almacenes.length;
+        res.status(200).send({usuario:usuario,cantidadAlmacenes:usuario.almacenes.length, almacenes:usuario.almacenes});
+    }
+    catch (error) {
+        res.status(500).send({error:'No se pudo realizar correctamente el login'});
     }
 });
 

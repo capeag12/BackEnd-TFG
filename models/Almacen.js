@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const AlmacenItem = require('./AlmacenItem');
 
 const almacenSchema = new mongoose.Schema({
     nombre: {
@@ -11,12 +12,6 @@ const almacenSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    imagen: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
@@ -30,6 +25,11 @@ almacenSchema.virtual('items', {
     foreignField: 'almacen'
 });
 
+
+almacenSchema.methods.deleteAllAlmacenItems = async function () {
+    const almacen = this;
+    await AlmacenItem.deleteMany({ almacen: almacen._id });
+}
 
 const Almacen = mongoose.model('Almacen', almacenSchema);
 
