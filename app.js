@@ -14,6 +14,7 @@ app.use(userRouter);
 app.use(almacenRouter);
 app.use(movimientoRouter);
 
+
 app.set('trust proxy', true)
 
 app.listen(port, () => {

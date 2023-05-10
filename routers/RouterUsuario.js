@@ -1,8 +1,10 @@
 const express = require('express');
 const Almacen = require('../models/Almacen');
 const auth = require('../middleware/auth');
-const Usuario = require('../models/Usuario')
+const Usuario = require('../models/Usuario');
+const multer = require('multer');
 const router = new express.Router();
+
 
 router.post("/usuarios/registrarUsuario", async (req, res) => {
     const usuario = new Usuario(req.body);
@@ -70,13 +72,31 @@ router.post("/usuarios/logout", auth, async (req, res) => {
 router.get("/usuarios/me", auth, async (req, res) => {
     try{
         let usuario = await Usuario.findById(req.usuario._id).populate('almacenes');
-        let cantidadAlmacenes = usuario.almacenes.length;
-        res.status(200).send({usuario:usuario,cantidadAlmacenes:usuario.almacenes.length, almacenes:usuario.almacenes});
+        console.log(usuario.almacenes);
+        res.status(200).send({usuario:usuario,almacenes:usuario.almacenes});
     }
     catch (error) {
         res.status(500).send({error:'No se pudo realizar correctamente el login'});
     }
 });
+
+router.get("/usuarios/me/avatar", auth, async (req, res) => {
+    console.log(req.body);
+});
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, 'uploads');
+    },
+    filename: function (req, file, cb) {
+      cb(null, file.originalname);
+    },
+  });
+  const upload = multer({ storage: storage });
+  
+router.patch("/usuarios/me/avatar", upload.single('avatar'),auth, async (req, res) => {
+    console.log('Cargando avatar');
+})
 
 router.post("/usuarios/logoutAll", auth, async (req, res) => {
     try {
