@@ -4,7 +4,8 @@ const auth = require('../middleware/auth');
 const Usuario = require('../models/Usuario');
 const multer = require('multer');
 const router = new express.Router();
-
+const path = require('path');
+var fs = require('fs');
 
 router.post("/usuarios/registrarUsuario", async (req, res) => {
     const usuario = new Usuario(req.body);
@@ -81,7 +82,7 @@ router.get("/usuarios/me", auth, async (req, res) => {
 });
 
 router.get("/usuarios/me/avatar", auth, async (req, res) => {
-    console.log(req.body);
+    
 });
 
 const storage = multer.diskStorage({
@@ -89,13 +90,37 @@ const storage = multer.diskStorage({
       cb(null, 'uploads');
     },
     filename: function (req, file, cb) {
-      cb(null, file.originalname);
+        let name =req.usuario._id + path.extname(file.originalname)
+        let imgLocation = process.cwd()+"\\uploads\\"+name;
+        let exist = fs.existsSync(imgLocation);
+        if(exist){
+            fs.unlinkSync(imgLocation);
+        }
+        cb(null,name );
+      
     },
   });
   const upload = multer({ storage: storage });
-  
-router.patch("/usuarios/me/avatar", upload.single('avatar'),auth, async (req, res) => {
-    console.log('Cargando avatar');
+  const realizeUpload = upload.single('avatar');
+router.patch("/usuarios/me/avatar", auth, async (req, res) => {
+    
+    realizeUpload(req, res, async function (err) {
+        if (err instanceof multer.MulterError) {
+        console.log(err);
+          return res.status(500).json(err);
+        } else if (err) {
+            console.log(err);
+            return res.status(500).json(err);
+        }
+    });
+
+    try {
+        res.status(200).send({msg:'Avatar cargado correctamente'});
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).send({error:'No se pudo cargar correctamente el nuuevo avatar'});
+    }
 })
 
 router.post("/usuarios/logoutAll", auth, async (req, res) => {
