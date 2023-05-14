@@ -82,7 +82,14 @@ router.get("/usuarios/me", auth, async (req, res) => {
 });
 
 router.get("/usuarios/me/avatar", auth, async (req, res) => {
-    
+    try{
+        let imgLocation = process.cwd()+"\\uploads\\"+req.usuario.avatar;
+        var img = fs.readFileSync(imgLocation, 'utf8');
+        res.status(200).sendFile(imgLocation)
+    }catch (error) {
+        console.log(error);
+        res.status(500).send({error:'No se pudo realizar correctamente el login'});
+    }
 });
 
 const storage = multer.diskStorage({
@@ -91,6 +98,8 @@ const storage = multer.diskStorage({
     },
     filename: function (req, file, cb) {
         let name =req.usuario._id + path.extname(file.originalname)
+        req.usuario.avatar = name;
+        req.usuario.save();
         let imgLocation = process.cwd()+"\\uploads\\"+name;
         let exist = fs.existsSync(imgLocation);
         if(exist){
@@ -102,6 +111,7 @@ const storage = multer.diskStorage({
   });
   const upload = multer({ storage: storage });
   const realizeUpload = upload.single('avatar');
+
 router.patch("/usuarios/me/avatar", auth, async (req, res) => {
     
     realizeUpload(req, res, async function (err) {
@@ -127,7 +137,7 @@ router.post("/usuarios/logoutAll", auth, async (req, res) => {
     try {
         req.usuario.tokens = [];
         await req.usuario.save();
-        res.send("Logout exitoso");
+        res.status(200).send("Logout exitoso");
     } catch (error) {
         res.status(500).send({error:'No se pudo realizar correctamente el logout'});
     }
