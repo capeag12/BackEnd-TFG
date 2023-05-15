@@ -6,10 +6,18 @@ const movimientoSchema = new mongoose.Schema({
         required: false,
         ref: 'Almacen'
     },
+    almacenOrigenName: {
+        type: String,
+        required: false,
+    },
     almacenDestino: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'Almacen'
+    },
+    almacenDestinoName: {
+        type: String,
+        required: true,
     },
     tipo: {
         type: String,

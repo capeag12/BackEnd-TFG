@@ -32,8 +32,8 @@ router.get("/movimientos/getAllMovements", auth, async (req, res) => {
             let movimientoEnviar = {
                 id: movimiento._id,
                 tipo: movimiento.tipo,
-                almacenOrigen: movimiento.origen[0],
-                almacenDestino: movimiento.destino[0],
+                almacenOrigen: movimiento.almacenOrigenName,
+                almacenDestino: movimiento.almacenDestinoName,
                 items: items,
                 fecha: movimiento.createdAt
             }

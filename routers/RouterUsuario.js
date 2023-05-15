@@ -84,11 +84,16 @@ router.get("/usuarios/me", auth, async (req, res) => {
 router.get("/usuarios/me/avatar", auth, async (req, res) => {
     try{
         let imgLocation = process.cwd()+"\\uploads\\"+req.usuario.avatar;
-        var img = fs.readFileSync(imgLocation, 'utf8');
-        res.status(200).sendFile(imgLocation)
+        if(fs.existsSync(imgLocation)){
+            return res.status(200).sendFile(imgLocation)
+        } else{
+            await Usuario.updateOne({_id:req.usuario._id},{avatar:null});
+            return res.status(404).send({error:'No se encontro el avatar'});
+        }
+        
     }catch (error) {
         console.log(error);
-        res.status(500).send({error:'No se pudo realizar correctamente el login'});
+        return res.status(500).send({error:'No se pudo realizar correctamente el login'});
     }
 });
 
