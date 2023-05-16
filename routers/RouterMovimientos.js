@@ -83,7 +83,7 @@ router.get("/movimientos/getPDF/:id", auth, async (req, res) => {
             origin = "Añadido desde almacen externo"
         }
         else{
-            origin = movimiento.origen[0].nombre
+            origin = movimiento.almacenOrigenName
         }
             
         
@@ -91,7 +91,7 @@ router.get("/movimientos/getPDF/:id", auth, async (req, res) => {
         let data = {
             items: itemsHTML,
             almacenOrigen: origin,
-            almacenDestino: movimiento.destino[0].nombre,
+            almacenDestino: movimiento.almacenDestinoName,
             fecha: movimiento.createdAt
 
         }

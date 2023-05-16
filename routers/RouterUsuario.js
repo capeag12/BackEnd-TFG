@@ -142,14 +142,19 @@ router.post("/usuarios/logoutAll", auth, async (req, res) => {
     try {
         req.usuario.tokens = [];
         await req.usuario.save();
-        res.status(200).send("Logout exitoso");
+        res.status(200).send({msg:'Logout exitoso'});
     } catch (error) {
         res.status(500).send({error:'No se pudo realizar correctamente el logout'});
     }
 });
 
 router.get("/me", auth, async (req, res) => {
-    res.send(req.usuario);
+    try{
+        res.status(200).send(req.usuario);
+    }
+    catch (error) {
+        res.status(500).send({error:'No se pudo realizar correctamente el login'});
+    }
 });
     
             
