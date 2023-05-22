@@ -6,6 +6,7 @@ const multer = require('multer');
 const router = new express.Router();
 const path = require('path');
 var fs = require('fs');
+const bcrypt = require('bcryptjs');
 
 router.post("/usuarios/registrarUsuario", async (req, res) => {
     const usuario = new Usuario(req.body);
@@ -103,13 +104,15 @@ const storage = multer.diskStorage({
     },
     filename: function (req, file, cb) {
         let name =req.usuario._id + path.extname(file.originalname)
-        req.usuario.avatar = name;
-        req.usuario.save();
-        let imgLocation = process.cwd()+"\\uploads\\"+name;
+        let imgLocation = process.cwd()+"\\uploads\\"+req.usuario.avatar;
         let exist = fs.existsSync(imgLocation);
         if(exist){
             fs.unlinkSync(imgLocation);
         }
+        req.usuario.avatar = name;
+        req.usuario.save();
+        
+        
         cb(null,name );
       
     },
@@ -142,9 +145,9 @@ router.post("/usuarios/logoutAll", auth, async (req, res) => {
     try {
         req.usuario.tokens = [];
         await req.usuario.save();
-        res.status(200).send({msg:'Logout exitoso'});
+        return res.status(200).send({msg:'Logout exitoso'});
     } catch (error) {
-        res.status(500).send({error:'No se pudo realizar correctamente el logout'});
+        return res.status(500).send({error:'No se pudo realizar correctamente el logout'});
     }
 });
 
@@ -154,6 +157,22 @@ router.get("/me", auth, async (req, res) => {
     }
     catch (error) {
         res.status(500).send({error:'No se pudo realizar correctamente el login'});
+    }
+});
+
+router.patch("/usuarios/me/changePassword", auth, async (req, res) => {
+    try {
+        const iguales = await bcrypt.compare(req.body.oldPassword, req.usuario.password);
+        if (iguales==true) {
+            let usuario = req.usuario;
+            usuario.password = req.body.newPassword;
+            await usuario.save();
+            res.status(200).send({msg:'Contraseña cambiada correctamente'});
+        } else{
+            return res.status(401).send({error:'La contraseña actual es incorrecta'});
+        }
+    } catch (error) {
+        res.status(500).send({error:'No se pudo cambiar la contraseña'});
     }
 });
     
