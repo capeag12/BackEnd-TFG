@@ -14,14 +14,10 @@ const envioSchema = new mongoose.Schema({
     estado: {
         type: String,
         required: true,
-        enum: ['Creado', 'En camino', 'Entregado'],
+        enum: ['Creado','Preparando','En camino', 'Entregado'],
         trim: true
     },
-    movimiento:{
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: 'Movimiento'
-    },
+    
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
@@ -32,11 +28,6 @@ const envioSchema = new mongoose.Schema({
     timestamps: true
 });
 
-envioSchema.virtual('movimiento', {
-    ref: 'Movimiento',
-    localField: 'movimiento',
-    foreignField: '_id'
-});
 
 const Envio = mongoose.model('Envio', envioSchema);
 

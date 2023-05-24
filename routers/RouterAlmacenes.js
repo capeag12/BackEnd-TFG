@@ -5,6 +5,7 @@ const AlmacenItem = require('../models/AlmacenItem');
 const Item = require('../models/Item');
 const Usuario = require('../models/Usuario');
 const Movimiento = require('../models/Movimiento');
+const Envio = require('../models/Envio');
 
 const router = new express.Router();
 
@@ -137,6 +138,15 @@ router.put("/almacenes/actualizarMercancia", auth, async (req, res) => {
                 items: listaItemsRestados,
                 owner: req.usuario._id
             })
+
+            let envio = new Envio({
+                direccionOrigen: almacenOrigen.direccion,
+                direccionDestino: almacenDestino.direccion,
+                estado: "Creado",
+                owner: req.usuario._id
+            });
+
+            await Envio.create(envio);
             movimientos.push(movimientoRestado);
         }
         
