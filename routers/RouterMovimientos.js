@@ -7,6 +7,8 @@ const Usuario = require('../models/Usuario');
 const Movimiento = require('../models/Movimiento');
 var pdf = require('pdf-creator-node');
 var fs = require('fs');
+const Envio = require('../models/Envio');
+const { default: mongoose } = require('mongoose');
 
 const router = new express.Router();
 
@@ -143,5 +145,55 @@ router.get("/movimientos/getPDF/:id", auth, async (req, res) => {
     }
     
 });
+
+router.get("/movimientos/getAllEnvios", auth, async (req, res) => {
+    try {
+        let envios = await Envio.find({owner: req.usuario._id})
+
+        let enviosEnviar = []
+        envios.forEach(element => {
+            let enviar = {
+                id: element._id,
+                destino: element.direccionDestino,
+                estado: element.estado,
+                fecha: element.createdAt
+
+            }
+            enviosEnviar.push(enviar)
+        });
+
+        return res.status(200).send(enviosEnviar)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send({error: "No se pudo obtener los envios"})
+    }
+})
+
+router.patch("/movimientos/actualizarEnvio/:id", auth, async (req, res) => {
+    console.log(req.params.id)
+    try {
+        let objId = new mongoose.mongo.ObjectId(req.params.id)
+        let envio = await Envio.findOne({_id: objId, owner: req.usuario._id})
+        if (!envio) {
+            return res.status(404).send({error: "No se encontro el envio"})
+        } else{
+            if(envio.estado == "Creado"){
+                envio.estado = "Preparando"
+            } else if(envio.estado == "Preparando"){
+                envio.estado = "En camino"
+            }
+            else if(envio.estado == "En camino"){
+                envio.estado = "Entregado"
+            }
+
+            await envio.save()
+            return res.status(201).send(envio);
+        }
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send({error: "No se pudo actualizar el envio"})
+    }
+
+})
 
 module.exports = router;

@@ -186,11 +186,9 @@ router.put("/almacenes/actualizarMercancia", auth, async (req, res) => {
         
     }
 
-
-    
-    
-
 });
+
+
 
 
     
