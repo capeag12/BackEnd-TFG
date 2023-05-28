@@ -2,6 +2,7 @@ const express = require('express');
 const Almacen = require('../models/Almacen');
 const auth = require('../middleware/auth');
 const Usuario = require('../models/Usuario');
+const Permiso = require('../models/Permiso');
 const multer = require('multer');
 const router = new express.Router();
 const path = require('path');
@@ -175,6 +176,10 @@ router.patch("/usuarios/me/changePassword", auth, async (req, res) => {
         res.status(500).send({error:'No se pudo cambiar la contraseña'});
     }
 });
+
+
+
+
     
             
 module.exports = router;

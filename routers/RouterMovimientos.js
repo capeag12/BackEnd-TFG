@@ -148,7 +148,7 @@ router.get("/movimientos/getPDF/:id", auth, async (req, res) => {
 
 router.get("/movimientos/getAllEnvios", auth, async (req, res) => {
     try {
-        let envios = await Envio.find({owner: req.usuario._id})
+        let envios = await Envio.find({owner: req.usuario._id}).sort({createdAt: -1})
 
         let enviosEnviar = []
         envios.forEach(element => {
