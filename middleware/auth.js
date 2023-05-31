@@ -14,7 +14,7 @@ const auth = async (req, res, next) => {
                 throw new Error();
             }
             req.permiso = permiso;
-            next();
+            
         }
 
         req.token = token;

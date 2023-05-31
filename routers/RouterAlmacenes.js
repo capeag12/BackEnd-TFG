@@ -11,34 +11,67 @@ const router = new express.Router();
 
 router.post("/almacenes/crearAlmacen", auth, async (req, res) => {
     try{
-        const almacen = new Almacen({
-            ...req.body,
-            owner: req.usuario._id
-        });
-        await almacen.save();
-        res.status(201).send(almacen);
+
+        if (req.usuario) {
+            const almacen = new Almacen({
+                ...req.body,
+                owner: req.usuario._id
+            });
+            await almacen.save();
+            return res.status(201).send(almacen);
+        } else if(req.permiso){
+            if (req.permiso.tipo == "Almacenes") {
+                const almacen = new Almacen({
+                    ...req.body,
+                    owner: req.permiso.owner
+                });
+                await almacen.save();
+                return res.status(201).send(almacen);
+            }
+            else{
+                return res.status(400).send("No tienes permisos para crear almacenes");
+            }
+            
+        } else{
+            return res.status(400).send("No tienes permisos para crear almacenes");
+        }
+        
     }
     catch (error) {
-        res.status(400).send("No se pudo crear el almacen");
+        return res.status(400).send("No se pudo crear el almacen");
     }
 });
 
 router.delete("/almacenes/eliminarAlmacen/:id", auth, async (req, res) => {
     try{
-        const almacen = await Almacen.findOneAndDelete({_id: req.params.id, owner: req.usuario._id});
-        await almacen.deleteAllAlmacenItems();
-        if (!almacen) {
-            return res.status(404).send();
+        if (req.usuario || (req.permiso && req.permiso.tipo == "Almacenes")) {
+            let owner;
+
+            if (req.usuario) {
+                owner = req.usuario._id;
+            } else{
+                owner = req.permiso.owner;
+            }
+
+            const almacen = await Almacen.findOneAndDelete({_id: req.params.id, owner: owner});
+            await almacen.deleteAllAlmacenItems();
+            if (!almacen) {
+                return res.status(404).send();
+            }
+            
+            return res.status(204).send("Eliminado correctamente");
+        } else{
+            return res.status(400).send("No tienes permisos para eliminar almacenes");
         }
-        
-        return res.status(204).send(almacen);
-        
+
     }
     catch (error) {
         console.log(error);
-        return res.status(500).send();
+        return res.status(500).send("Algo ha salido mal");
     }
 });
+
+////TODO
 
 router.put("/almacenes/addProducto/:id", auth, async (req, res) => {
     try{

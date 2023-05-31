@@ -19,8 +19,9 @@ router.post("/usuarios/registrarUsuario", async (req, res) => {
     }
     try {
         await usuario.save();
+        
         const token = await usuario.generateAuthToken();
-        res.status(201).send({usuario, token});
+        res.status(201).send({usuario, token, tipo:"admin"});
         } catch (error) {
             res.status(400).send({error: 'No se pudo crear el usuario'});
         }
@@ -29,16 +30,16 @@ router.post("/usuarios/registrarUsuario", async (req, res) => {
 router.post("/usuarios/login", async (req, res) => {
     console.log("Realizando login");
     try {
-        console.log(req.body);
         const usuario = await Usuario.findByCredentials(req.body.email, req.body.password);
         
         if (!usuario) {
             return res.status(401).send({error: 'El usuario o la contraseña son incorrectos'});
         } else{
             const token = await usuario.generateAuthToken();
-        
-            res.send({usuario, token});
+            
+            return res.send({usuario, token,tipo:"admin"});
         }
+        
         
         
     } catch (error) {
@@ -48,25 +49,55 @@ router.post("/usuarios/login", async (req, res) => {
 });
 
 router.post("/usuarios/loginToken", auth, async (req, res) => {
-    
+    console.log("Realizando login");
     try{
-        let usuario = await Usuario.findById(req.usuario._id).populate('almacenes');
-        res.status(200).send({usuario:usuario,almacenes:usuario.almacenes});
-        console.log("Sesion iniciada");
+        if (req.usuario) {
+            console.log("Usuario");
+            let usuario = await Usuario.findById(req.usuario._id).populate('almacenes');
+            return res.status(200).send({usuario:usuario,almacenes:usuario.almacenes,tipo:"admin"});
+        } else if(req.permiso){
+            console.log("Permiso");
+            let permiso = req.permiso;
+            let permisoEnviar = {
+                _id: permiso._id,
+                nombre: permiso.nombre,
+                email:permiso.nombre,
+            }            
 
+            let almacenes = [];
+            if(permiso.tipo == "Almacenes"){
+                console.log("Almacenes");
+                almacenes = await Almacen.find({owner:permiso.owner});
+                console.log(almacenes);
+            } 
+            return res.status(200).send({usuario:permisoEnviar, almacenes:almacenes,tipo:permiso.tipo});
+
+        } else{
+            return res.status(400).send({error:'El login no fue posible'});
+        }
     }
     catch (error) {
-        res.status(400).send({error:'El login no fue posible'});
+        return res.status(400).send({error:'El login no fue posible'});
     }
 });
 
 router.post("/usuarios/logout", auth, async (req, res) => {
     try {
-        req.usuario.tokens = req.usuario.tokens.filter((token) => {
-            return token.token !== req.token;
-        });
-        await req.usuario.save();
-        res.send("Logout exitoso");
+        if (req.usuario) {
+            req.usuario.tokens = req.usuario.tokens.filter((token) => {
+                return token.token !== req.token;
+            });
+            await req.usuario.save();
+            return res.send("Logout exitoso");
+        } else if(req.permiso){
+            req.permiso.tokens = req.permiso.tokens.filter((token) => {
+                return token.token !== req.token;
+            });
+            await req.permiso.save();
+            return res.send("Logout exitoso");
+        } else{
+            return res.status(400).send({error:'El logout no fue posible'});
+        }
     } catch (error) {
         res.status(500).send({error:'No se pudo realizar correctamente el logout'});
     }
@@ -74,9 +105,15 @@ router.post("/usuarios/logout", auth, async (req, res) => {
 
 router.get("/usuarios/me", auth, async (req, res) => {
     try{
-        let usuario = await Usuario.findById(req.usuario._id).populate('almacenes');
-        console.log(usuario.almacenes);
-        res.status(200).send({usuario:usuario,almacenes:usuario.almacenes});
+        if (req.usuario) {
+            let usuario = await Usuario.findById(req.usuario._id).populate('almacenes');
+            console.log(usuario.almacenes);
+            res.status(200).send({usuario:usuario,almacenes:usuario.almacenes,tipo:"admin"});
+        } 
+        else{
+            res.status(400).send({error:'El login no fue posible'});
+        }
+        
     }
     catch (error) {
         res.status(500).send({error:'No se pudo realizar correctamente el login'});
@@ -122,31 +159,48 @@ const storage = multer.diskStorage({
   const realizeUpload = upload.single('avatar');
 
 router.patch("/usuarios/me/avatar", auth, async (req, res) => {
-    
-    realizeUpload(req, res, async function (err) {
-        if (err instanceof multer.MulterError) {
-        console.log(err);
-          return res.status(500).json(err);
-        } else if (err) {
+    if (req.usuario) {
+        realizeUpload(req, res, async function (err) {
+            if (err instanceof multer.MulterError) {
             console.log(err);
-            return res.status(500).json(err);
+              return res.status(500).json(err);
+            } else if (err) {
+                console.log(err);
+                return res.status(500).json(err);
+            }
+        });
+    
+        try {
+            res.status(200).send({msg:'Avatar cargado correctamente'});
         }
-    });
-
-    try {
-        res.status(200).send({msg:'Avatar cargado correctamente'});
+        catch (error) {
+            console.log(error);
+            res.status(500).send({error:'No se pudo cargar correctamente el nuuevo avatar'});
+        }
+    
+        
+    } else{
+        res.status(400).send({error:'No pienes permisos para realizar esta accion'});
     }
-    catch (error) {
-        console.log(error);
-        res.status(500).send({error:'No se pudo cargar correctamente el nuuevo avatar'});
-    }
+    
+    
 })
 
 router.post("/usuarios/logoutAll", auth, async (req, res) => {
     try {
-        req.usuario.tokens = [];
-        await req.usuario.save();
-        return res.status(200).send({msg:'Logout exitoso'});
+        if (req.usuario) {
+            req.usuario.tokens = [];
+            await req.usuario.save();
+            return res.status(200).send({msg:'Logout exitoso'});
+        }
+        else if(req.permiso){
+            req.permiso.tokens = [];
+            await req.permiso.save();
+            return res.status(200).send({msg:'Logout exitoso'});
+        } else{
+            return res.status(400).send({error:'El logout no fue posible'});
+        }
+        
     } catch (error) {
         return res.status(500).send({error:'No se pudo realizar correctamente el logout'});
     }
@@ -154,7 +208,11 @@ router.post("/usuarios/logoutAll", auth, async (req, res) => {
 
 router.get("/me", auth, async (req, res) => {
     try{
-        res.status(200).send(req.usuario);
+        if (req.usuario) {
+            res.status(200).send(req.usuario);
+        
+            
+        } else res.status(400).send({msg:'El login no fue posible'});
     }
     catch (error) {
         res.status(500).send({error:'No se pudo realizar correctamente el login'});
@@ -163,15 +221,20 @@ router.get("/me", auth, async (req, res) => {
 
 router.patch("/usuarios/me/changePassword", auth, async (req, res) => {
     try {
-        const iguales = await bcrypt.compare(req.body.oldPassword, req.usuario.password);
-        if (iguales==true) {
-            let usuario = req.usuario;
-            usuario.password = req.body.newPassword;
-            await usuario.save();
-            res.status(200).send({msg:'Contraseña cambiada correctamente'});
+        if (req.usuario) {
+            const iguales = await bcrypt.compare(req.body.oldPassword, req.usuario.password);
+            if (iguales==true) {
+                let usuario = req.usuario;
+                usuario.password = req.body.newPassword;
+                await usuario.save();
+                res.status(200).send({msg:'Contraseña cambiada correctamente'});
+            } else{
+                return res.status(401).send({error:'La contraseña actual es incorrecta'});
+            }
         } else{
-            return res.status(401).send({error:'La contraseña actual es incorrecta'});
+            return res.status(400).send({error:'No tienes permisos para cambiar la contraseña'});
         }
+        
     } catch (error) {
         res.status(500).send({error:'No se pudo cambiar la contraseña'});
     }

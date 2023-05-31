@@ -8,6 +8,8 @@ const router = new express.Router();
 const path = require('path');
 var fs = require('fs');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { default: mongoose } = require('mongoose');
 
 router.post("/usuario/crearPermiso", auth, async (req, res) => {
     try {
@@ -21,7 +23,15 @@ router.post("/usuario/crearPermiso", auth, async (req, res) => {
             let permiso = new Permiso(registrarPermiso);
 
             await permiso.save();
-            return res.status(201).send(permiso);
+
+            const token = await permiso.generateAuthToken();
+            let permisoEnviar = {
+                _id: permiso._id,
+                nombre: permiso.nombre,
+                tokenAcceso:permiso.tokenAcceso,
+            }
+            return res.status(200).send({permiso:permisoEnviar, token:token, tipo:permiso.tipo});
+            
 
         } else{
             return res.status(401).send({error:'No se pudo crear el permiso'});
@@ -33,9 +43,33 @@ router.post("/usuario/crearPermiso", auth, async (req, res) => {
 });
 
 router.post("/permisos/logPermiso", async (req, res) => {
-    console.log("Realizando login");
-    let token = req.body.token;
-    const decoded = jwt.verify(token, 'nuevotoken');
+    try {
+        console.log("Realizando login");
+        let token = req.body.token;
+        console.log(token);
+        const decoded = jwt.verify(token, 'nuevotoken');
+        console.log(decoded);
+        let permiso = await Permiso.findOne({ _id: new mongoose.mongo.ObjectId(decoded._id), tokenAcceso: token });
+        console.log(permiso);
+        if (!permiso) {
+            return res.status(401).send({ error: 'No se pudo realizar el login' });
+        }
+        else{
+            const token = await permiso.generateAuthToken();
+            let permisoEnviar = {
+                _id: permiso._id,
+                nombre: permiso.nombre,
+                email:permiso.nombre,
+            }
+            return res.status(200).send({usuario:permisoEnviar, token:token, tipo:permiso.tipo});
+        }
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({ error: 'No se pudo realizar el login' });
+    }
+
+
 });
 
 
