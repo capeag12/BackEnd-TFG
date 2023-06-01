@@ -72,6 +72,37 @@ router.post("/permisos/logPermiso", async (req, res) => {
 
 });
 
+router.get("/permisos/getPermisos", auth, async (req, res) => {
+    try{
+        if (req.usuario) {
+            let permisos = await Permiso.find({owner:req.usuario._id});
+
+            let permisosEnviar = [];
+
+            permisos.forEach(permiso => {
+                let permisoEnviar = {
+                    _id:permiso._id,
+                    nombre:permiso.nombre,
+                    tipo:permiso.tipo,
+                    tokenAcceso:permiso.tokenAcceso
+                }
+                permisosEnviar.push(permisoEnviar);
+
+            });
+
+            return res.status(200).send({permisos:permisosEnviar});
+        }
+        else{
+            return res.status(401).send({error:'No se pudo obtener los permisos'});
+        }
+    }
+    catch(error){
+        console.log(error);
+        return res.status(500).send({error:'No se pudo obtener los permisos'});
+    }
+
+});
+
 
     
             

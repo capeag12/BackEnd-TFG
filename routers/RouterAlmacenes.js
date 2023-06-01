@@ -75,19 +75,34 @@ router.delete("/almacenes/eliminarAlmacen/:id", auth, async (req, res) => {
 
 router.put("/almacenes/addProducto/:id", auth, async (req, res) => {
     try{
-        const item = new Item(req.body);
-        const almacen = await Almacen.findOne({_id: req.params.id, owner: req.usuario._id});
-        const itemBuscar = await Item.exists({nombre: req.body.nombre, descripcion: req.body.valor});
-        if (!almacen) {
-            return res.status(404).send();
-        }
-        if (!itemBuscar) {
-            await item.save();
-        }
-        const almacenItem = new AlmacenItem({item: item._id, almacen: almacen._id, cantidad: req.body.cantidad});
-        await almacenItem.save();
+        if (req.usuario || (req.permiso && req.permiso.tipo == "Almacenes")) {
 
-        return res.status(201).send({id:almacenItem.id,cantidad: almacenItem.cantidad, item: item});
+            let owner;
+
+            if (req.usuario) {
+                owner = req.usuario._id;
+            } else{
+                owner = req.permiso.owner;
+            }
+
+            const item = new Item(req.body);
+            const almacen = await Almacen.findOne({_id: req.params.id, owner: owner});
+            const itemBuscar = await Item.exists({nombre: req.body.nombre, descripcion: req.body.valor});
+            if (!almacen) {
+                return res.status(404).send();
+            }
+            if (!itemBuscar) {
+                await item.save();
+            }
+            const almacenItem = new AlmacenItem({item: item._id, almacen: almacen._id, cantidad: req.body.cantidad});
+            await almacenItem.save();
+
+            return res.status(201).send({id:almacenItem.id,cantidad: almacenItem.cantidad, item: item});
+        } else{
+            return res.status(400).send("No tienes permisos para agregar productos");
+        }
+
+        
     }
     catch (error) {
         console.log(error);
@@ -97,18 +112,30 @@ router.put("/almacenes/addProducto/:id", auth, async (req, res) => {
 
 router.get("/almacenes/getItemsAlmacen/:id", auth, async (req, res) => {
     try{
-        const almacen = await Almacen.findOne({_id: req.params.id, owner: req.usuario._id}).populate('items');
-        if (!almacen) {
-            return res.status(404).send();
+        if (req.usuario || (req.permiso && req.permiso.tipo == "Almacenes")) {
+            let owner;
+
+            if (req.usuario) {
+                owner = req.usuario._id;
+            } else{
+                owner = req.permiso.owner;
+            }
+
+            const almacen = await Almacen.findOne({_id: req.params.id, owner: owner}).populate('items');
+            if (!almacen) {
+                return res.status(404).send();
+            }
+            const items = [];
+            for (let i = 0; i < almacen.items.length; i++) {
+                let itemFind = await Item.findById(almacen.items[i].item._id);
+                itemFind.cantidad = almacen.items[i].cantidad;
+                
+                items.push({id: almacen.items[i]._id, item:itemFind, cantidad: almacen.items[i].cantidad});
+            }
+            return res.status(200).send(items);
         }
-        const items = [];
-        for (let i = 0; i < almacen.items.length; i++) {
-            let itemFind = await Item.findById(almacen.items[i].item._id);
-            itemFind.cantidad = almacen.items[i].cantidad;
-            
-            items.push({id: almacen.items[i]._id, item:itemFind, cantidad: almacen.items[i].cantidad});
-        }
-        return res.status(200).send(items);
+
+        
     }
     catch (error) {
         console.log(error);
@@ -118,100 +145,117 @@ router.get("/almacenes/getItemsAlmacen/:id", auth, async (req, res) => {
 
 router.put("/almacenes/actualizarMercancia", auth, async (req, res) => {
     try {
-        let restados = req.body.restados;
-        let added = req.body.added;
-        let listaRestados = [];
-        let listaVaciosOriginal=[]
-        let almacenItemCambiados = [];
-        let movimientos = [];
-        let listaItemsRestados = [];
 
-        let almacenOrigen = await Almacen.findById(req.body.start);
-        let almacenDestino = await Almacen.findById(req.body.end);
-        restados.forEach(element => {
-            let diferenciaCantidad = element.cantidad - element.cantidadCambiada;
-            let diff  = element.cantidadCambiada - element.cantidad;
-            
-            let itemMovimiento = {item: element.item.id, diferencia: diff};
-            listaItemsRestados.push(itemMovimiento);
+        if (req.usuario || (req.permiso && req.permiso.tipo == "Almacenes")) {
+            let owner;
 
-            if(element.cantidadCambiada == 0){
-                listaVaciosOriginal.push(element.id);
-            } else{
-                let almacenItemOriginal = new AlmacenItem({_id: element.id, item: element.item.id, almacen: req.body.start, cantidad: element.cantidadCambiada});
-                almacenItemCambiados.push(almacenItemOriginal);
+            if (req.usuario) {
+                owner = req.usuario._id;
             }
-            
-            let nuevoItem = new AlmacenItem({item: element.item.id, almacen: req.body.end, cantidad: diferenciaCantidad});
-            listaRestados.push(nuevoItem);
-        });
-        listaRestados.forEach(async element => {
-            let itemTraido = await AlmacenItem.findOne({item: element.item, almacen: element.almacen});
-            
-            if (itemTraido) {
-                itemTraido.cantidad += element.cantidad;
-                itemTraido.save();
-            }
-            else
-            {
-                await element.save();
+            else{
+                owner = req.permiso.owner;
             }
 
-        });
+            let restados = req.body.restados;
+            let added = req.body.added;
+            let listaRestados = [];
+            let listaVaciosOriginal=[]
+            let almacenItemCambiados = [];
+            let movimientos = [];
+            let listaItemsRestados = [];
 
-        
+            let almacenOrigen = await Almacen.findById(req.body.start);
+            let almacenDestino = await Almacen.findById(req.body.end);
+            restados.forEach(element => {
+                let diferenciaCantidad = element.cantidad - element.cantidadCambiada;
+                let diff  = element.cantidadCambiada - element.cantidad;
+                
+                let itemMovimiento = {item: element.item.id, diferencia: diff};
+                listaItemsRestados.push(itemMovimiento);
 
-        if (listaItemsRestados.length > 0) {
-            let movimientoRestado = new Movimiento({
-                almacenOrigen: req.body.start,
-                almacenOrigenName: almacenOrigen.nombre,
-                almacenDestino: req.body.end,
-                almacenDestinoName: almacenDestino.nombre,
-                tipo: "Salida",
-                items: listaItemsRestados,
-                owner: req.usuario._id
-            })
+                if(element.cantidadCambiada == 0){
+                    listaVaciosOriginal.push(element.id);
+                } else{
+                    let almacenItemOriginal = new AlmacenItem({_id: element.id, item: element.item.id, almacen: req.body.start, cantidad: element.cantidadCambiada});
+                    almacenItemCambiados.push(almacenItemOriginal);
+                }
+                
+                let nuevoItem = new AlmacenItem({item: element.item.id, almacen: req.body.end, cantidad: diferenciaCantidad});
+                listaRestados.push(nuevoItem);
+            });
+            listaRestados.forEach(async element => {
+                let itemTraido = await AlmacenItem.findOne({item: element.item, almacen: element.almacen});
+                
+                if (itemTraido) {
+                    itemTraido.cantidad += element.cantidad;
+                    itemTraido.save();
+                }
+                else
+                {
+                    await element.save();
+                }
 
-            let envio = new Envio({
-                direccionOrigen: almacenOrigen.direccion,
-                direccionDestino: almacenDestino.direccion,
-                estado: "Creado",
-                owner: req.usuario._id
             });
 
-            await Envio.create(envio);
-            movimientos.push(movimientoRestado);
-        }
-        
-        if (added.length > 0) {
-            let listaItemsAdded = [];
-            added.forEach(async (element) => {
-                console.log(element);
-                let diferencia = element.cantidadCambiada - element.cantidad;
-                listaItemsAdded.push({item:element.item.id,diferencia:diferencia });
-                await AlmacenItem.updateOne({_id: element.id}, {cantidad: element.cantidadCambiada});
+            
+
+            if (listaItemsRestados.length > 0) {
+                let movimientoRestado = new Movimiento({
+                    almacenOrigen: req.body.start,
+                    almacenOrigenName: almacenOrigen.nombre,
+                    almacenDestino: req.body.end,
+                    almacenDestinoName: almacenDestino.nombre,
+                    tipo: "Salida",
+                    items: listaItemsRestados,
+                    owner: owner
+                })
+
+                let envio = new Envio({
+                    direccionOrigen: almacenOrigen.direccion,
+                    direccionDestino: almacenDestino.direccion,
+                    estado: "Creado",
+                    owner: owner
+                });
+
+                await Envio.create(envio);
+                movimientos.push(movimientoRestado);
+            }
+            
+            if (added.length > 0) {
+                let listaItemsAdded = [];
+                added.forEach(async (element) => {
+                    console.log(element);
+                    let diferencia = element.cantidadCambiada - element.cantidad;
+                    listaItemsAdded.push({item:element.item.id,diferencia:diferencia });
+                    await AlmacenItem.updateOne({_id: element.id}, {cantidad: element.cantidadCambiada});
+                    
+                });
+                let movimientoAdded = new Movimiento({
+                    almacenDestino: req.body.start,
+                    almacenDestinoName: almacenOrigen.nombre,
+                    tipo: "Entrada",
+                    items: listaItemsAdded,
+                    owner: owner
+                    
+                }) 
+                console.log(movimientoAdded);
+                movimientos.push(movimientoAdded);
                 
+            }
+                
+            
+            await AlmacenItem.deleteMany({_id: {$in: listaVaciosOriginal}});
+            almacenItemCambiados.forEach(async element => {
+            await AlmacenItem.updateOne({_id: element.id}, element);
             });
-            let movimientoAdded = new Movimiento({
-                almacenDestino: req.body.start,
-                almacenDestinoName: almacenOrigen.nombre,
-                tipo: "Entrada",
-                items: listaItemsAdded,
-                owner: req.usuario._id
-                
-            }) 
-            console.log(movimientoAdded);
-            movimientos.push(movimientoAdded);
-            
+            await Movimiento.insertMany(movimientos);
+            return res.status(200).send();
+
+
+        } else{
+            return res.status(400).send("No tienes permisos para actualizar mercancia");
         }
-            
         
-        await AlmacenItem.deleteMany({_id: {$in: listaVaciosOriginal}});
-        almacenItemCambiados.forEach(async element => {
-           await AlmacenItem.updateOne({_id: element.id}, element);
-        });
-        await Movimiento.insertMany(movimientos);
-        return res.status(200).send();
         
     } catch (error) {
         console.log(error);

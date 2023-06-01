@@ -11,7 +11,7 @@ const permisoSchema = new mongoose.Schema({
     tipo:{
         type: String,
         trim: true,
-        enum: ['Movimientos', 'Almacenes', 'Items', 'Envios'],
+        enum: ['Movimientos', 'Almacenes', 'Envios'],
         required: true
 
     },
