@@ -14,15 +14,19 @@ const { default: mongoose } = require('mongoose');
 router.post("/usuario/crearPermiso", auth, async (req, res) => {
     try {
         if (req.usuario) {
+            console.log("req.usuario._id: " + req.usuario);
             let registrarPermiso = {
                 nombre: req.body.nombre,
                 tipo: req.body.tipo,
                 owner: req.usuario._id
             }
 
+            console.log(registrarPermiso);
+
             let permiso = new Permiso(registrarPermiso);
 
             await permiso.save();
+            console.log(permiso);
 
             const token = await permiso.generateAuthToken();
             let permisoEnviar = {
@@ -34,6 +38,7 @@ router.post("/usuario/crearPermiso", auth, async (req, res) => {
             
 
         } else{
+            console.log("No se pudo crear el permiso");
             return res.status(401).send({error:'No se pudo crear el permiso'});
         }
     } catch (error) {
@@ -102,6 +107,20 @@ router.get("/permisos/getPermisos", auth, async (req, res) => {
     }
 
 });
+
+router.delete("/permisos/eliminarPermiso/:id", auth, async (req, res) => {
+    try {
+        if (req.usuario) {
+            await Permiso.deleteOne({_id:req.params.id});
+            return res.status(201).send({mensaje:'Permiso eliminado'});
+        } else{
+            return res.status(401).send({error:'No se pudo eliminar el permiso'});
+        }
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({error:'No se pudo eliminar el permiso'});
+    }
+})
 
 
     
