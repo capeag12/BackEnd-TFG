@@ -13,8 +13,10 @@ const { default: mongoose } = require('mongoose');
 const router = new express.Router();
 
 router.get("/movimientos/getAllMovements", auth, async (req, res) => {
+    console.log(req.permiso.tipo);
     try{
         if (req.usuario || (req.permiso && req.permiso.tipo == "Movimientos")) {
+            console.log("Ha entrado en el if")
             let owner;
 
             if (req.usuario) {
@@ -22,7 +24,7 @@ router.get("/movimientos/getAllMovements", auth, async (req, res) => {
             } else{
                 owner = req.permiso.owner;
             }
-
+            console.log("Ha entrado en el if")
 
             const movimientos = await Movimiento.find({owner: owner}).populate('itemsDiferencia').populate('destino').populate('origen').sort({createdAt: -1});
     
@@ -57,11 +59,6 @@ router.get("/movimientos/getAllMovements", auth, async (req, res) => {
         } else{
             return res.status(401).send({msg: "No tienes permiso para realizar esta acción"})
         }
-
-
-        
-
-
     }
     catch (error) {
         return res.status(500).send({
@@ -73,6 +70,7 @@ router.get("/movimientos/getAllMovements", auth, async (req, res) => {
 });
 
 router.get("/movimientos/getPDF/:id", auth, async (req, res) => {
+    console.log(req.permiso.tipo);
     try{
         if (req.usuario || (req.permiso && req.permiso.tipo == "Movimientos")) {
             let owner;
@@ -176,6 +174,7 @@ router.get("/movimientos/getPDF/:id", auth, async (req, res) => {
 });
 
 router.get("/movimientos/getAllEnvios", auth, async (req, res) => {
+    console.log(req.permiso.tipo);
     try {
 
         if(req.usuario || (req.permiso && req.permiso.tipo == "Envios")){
@@ -191,6 +190,7 @@ router.get("/movimientos/getAllEnvios", auth, async (req, res) => {
 
             let enviosEnviar = []
             envios.forEach(element => {
+                console.log(element)
                 let enviar = {
                     id: element._id,
                     destino: element.direccionDestino,
@@ -215,6 +215,7 @@ router.get("/movimientos/getAllEnvios", auth, async (req, res) => {
 })
 
 router.patch("/movimientos/actualizarEnvio/:id", auth, async (req, res) => {
+    console.log(req.permiso.tipo);
     console.log(req.params.id)
     try {
 

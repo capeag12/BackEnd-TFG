@@ -10,6 +10,7 @@ const Envio = require('../models/Envio');
 const router = new express.Router();
 
 router.post("/almacenes/crearAlmacen", auth, async (req, res) => {
+    console.log(req.permiso.tipo);
     try{
 
         if (req.usuario) {
@@ -43,6 +44,7 @@ router.post("/almacenes/crearAlmacen", auth, async (req, res) => {
 });
 
 router.delete("/almacenes/eliminarAlmacen/:id", auth, async (req, res) => {
+    console.log(req.permiso.tipo);
     try{
         if (req.usuario || (req.permiso && req.permiso.tipo == "Almacenes")) {
             let owner;
@@ -71,9 +73,10 @@ router.delete("/almacenes/eliminarAlmacen/:id", auth, async (req, res) => {
     }
 });
 
-////TODO
+
 
 router.put("/almacenes/addProducto/:id", auth, async (req, res) => {
+    console.log(req.permiso.tipo);
     try{
         if (req.usuario || (req.permiso && req.permiso.tipo == "Almacenes")) {
 
@@ -111,6 +114,7 @@ router.put("/almacenes/addProducto/:id", auth, async (req, res) => {
 });
 
 router.get("/almacenes/getItemsAlmacen/:id", auth, async (req, res) => {
+    console.log(req.permiso.tipo);
     try{
         if (req.usuario || (req.permiso && req.permiso.tipo == "Almacenes")) {
             let owner;
@@ -144,6 +148,7 @@ router.get("/almacenes/getItemsAlmacen/:id", auth, async (req, res) => {
 });
 
 router.put("/almacenes/actualizarMercancia", auth, async (req, res) => {
+    console.log(req.permiso.tipo);
     try {
 
         if (req.usuario || (req.permiso && req.permiso.tipo == "Almacenes")) {
