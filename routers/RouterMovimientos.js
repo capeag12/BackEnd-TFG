@@ -13,7 +13,7 @@ const { default: mongoose } = require('mongoose');
 const router = new express.Router();
 
 router.get("/movimientos/getAllMovements", auth, async (req, res) => {
-    console.log(req.permiso.tipo);
+    
     try{
         if (req.usuario || (req.permiso && req.permiso.tipo == "Movimientos")) {
             console.log("Ha entrado en el if")
@@ -70,7 +70,7 @@ router.get("/movimientos/getAllMovements", auth, async (req, res) => {
 });
 
 router.get("/movimientos/getPDF/:id", auth, async (req, res) => {
-    console.log(req.permiso.tipo);
+    
     try{
         if (req.usuario || (req.permiso && req.permiso.tipo == "Movimientos")) {
             let owner;
@@ -174,7 +174,7 @@ router.get("/movimientos/getPDF/:id", auth, async (req, res) => {
 });
 
 router.get("/movimientos/getAllEnvios", auth, async (req, res) => {
-    console.log(req.permiso.tipo);
+    
     try {
 
         if(req.usuario || (req.permiso && req.permiso.tipo == "Envios")){
@@ -186,7 +186,7 @@ router.get("/movimientos/getAllEnvios", auth, async (req, res) => {
                 owner = req.permiso.owner;
             }
 
-            let envios = await Envio.find({owner: req.usuario._id}).sort({createdAt: -1})
+            let envios = await Envio.find({owner: owner}).sort({createdAt: -1})
 
             let enviosEnviar = []
             if (envios.length != 0) {
@@ -218,8 +218,7 @@ router.get("/movimientos/getAllEnvios", auth, async (req, res) => {
 })
 
 router.patch("/movimientos/actualizarEnvio/:id", auth, async (req, res) => {
-    console.log(req.permiso.tipo);
-    console.log(req.params.id)
+    
     try {
 
         if(req.usuario || (req.permiso && req.permiso.tipo == "Envios")){

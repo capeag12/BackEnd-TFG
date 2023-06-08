@@ -109,6 +109,7 @@ router.get("/permisos/getPermisos", auth, async (req, res) => {
 
 });
 
+
 router.delete("/permisos/eliminarPermiso/:id", auth, async (req, res) => {
     try {
         if (req.usuario) {
