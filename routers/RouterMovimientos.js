@@ -189,7 +189,8 @@ router.get("/movimientos/getAllEnvios", auth, async (req, res) => {
             let envios = await Envio.find({owner: req.usuario._id}).sort({createdAt: -1})
 
             let enviosEnviar = []
-            envios.forEach(element => {
+            if (envios.length != 0) {
+                envios.forEach(element => {
                 console.log(element)
                 let enviar = {
                     id: element._id,
@@ -200,6 +201,8 @@ router.get("/movimientos/getAllEnvios", auth, async (req, res) => {
                 }
                 enviosEnviar.push(enviar)
             });
+            }
+            
 
             return res.status(200).send(enviosEnviar)
         }
