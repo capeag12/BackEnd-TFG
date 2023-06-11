@@ -12,12 +12,12 @@ const movimientoSchema = new mongoose.Schema({
     },
     almacenDestino: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true,
+        required: false,
         ref: 'Almacen'
     },
     almacenDestinoName: {
         type: String,
-        required: true,
+        required: false,
     },
     tipo: {
         type: String,

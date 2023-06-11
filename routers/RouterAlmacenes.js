@@ -170,7 +170,13 @@ router.put("/almacenes/actualizarMercancia", auth, async (req, res) => {
             let listaItemsRestados = [];
 
             let almacenOrigen = await Almacen.findById(req.body.start);
-            let almacenDestino = await Almacen.findById(req.body.end);
+            let almacenDestino
+            if (req.body.end == "") {
+                almacenDestino = new Almacen({nombre: "Eliminado", owner: owner});
+            } else{
+                almacenDestino = await Almacen.findById(req.body.end);
+            }
+            
             restados.forEach(element => {
                 let diferenciaCantidad = element.cantidad - element.cantidadCambiada;
                 let diff  = element.cantidadCambiada - element.cantidad;
@@ -185,8 +191,12 @@ router.put("/almacenes/actualizarMercancia", auth, async (req, res) => {
                     almacenItemCambiados.push(almacenItemOriginal);
                 }
                 
-                let nuevoItem = new AlmacenItem({item: element.item.id, almacen: req.body.end, cantidad: diferenciaCantidad});
-                listaRestados.push(nuevoItem);
+                if (req.body.end != ""){
+                    let nuevoItem = new AlmacenItem({item: element.item.id, almacen: req.body.end, cantidad: diferenciaCantidad});
+                    listaRestados.push(nuevoItem);
+                }
+
+                
             });
             listaRestados.forEach(async element => {
                 let itemTraido = await AlmacenItem.findOne({item: element.item, almacen: element.almacen});
@@ -205,24 +215,40 @@ router.put("/almacenes/actualizarMercancia", auth, async (req, res) => {
             
 
             if (listaItemsRestados.length > 0) {
-                let movimientoRestado = new Movimiento({
-                    almacenOrigen: req.body.start,
-                    almacenOrigenName: almacenOrigen.nombre,
-                    almacenDestino: req.body.end,
-                    almacenDestinoName: almacenDestino.nombre,
-                    tipo: "Salida",
-                    items: listaItemsRestados,
-                    owner: owner
-                })
+                let movimientoRestado
+                if(req.body.end==""){
+                    movimientoRestado = new Movimiento({
+                        almacenOrigen: req.body.start,
+                        almacenOrigenName: almacenOrigen.nombre,
+                        
+                        tipo: "Salida",
+                        items: listaItemsRestados,
+                        owner: owner
+                    })
+    
+                    
+                } else{
+                    movimientoRestado = new Movimiento({
+                        almacenOrigen: req.body.start,
+                        almacenOrigenName: almacenOrigen.nombre,
+                        almacenDestino: req.body.end,
+                        almacenDestinoName: almacenDestino.nombre,
+                        tipo: "Salida",
+                        items: listaItemsRestados,
+                        owner: owner
+                    })
+    
+                    let envio = new Envio({
+                        direccionOrigen: almacenOrigen.direccion,
+                        direccionDestino: almacenDestino.direccion,
+                        estado: "Creado",
+                        owner: owner
+                    });
+    
+                    await Envio.create(envio);
+                }
 
-                let envio = new Envio({
-                    direccionOrigen: almacenOrigen.direccion,
-                    direccionDestino: almacenDestino.direccion,
-                    estado: "Creado",
-                    owner: owner
-                });
-
-                await Envio.create(envio);
+                 
                 movimientos.push(movimientoRestado);
             }
             

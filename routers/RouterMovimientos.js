@@ -108,12 +108,20 @@ router.get("/movimientos/getPDF/:id", auth, async (req, res) => {
                 origin = movimiento.almacenOrigenName
             }
                 
+            let nombreDestino
+            if (movimiento.almacenDestinoName == null) {
+                nombreDestino = "Eliminado"
+            }
+            else{
+                nombreDestino = movimiento.almacenDestinoName
+            }
+                
             
 
             let data = {
                 items: itemsHTML,
                 almacenOrigen: origin,
-                almacenDestino: movimiento.almacenDestinoName,
+                almacenDestino: nombreDestino,
                 fecha: movimiento.createdAt
 
             }
