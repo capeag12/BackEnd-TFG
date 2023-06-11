@@ -81,6 +81,7 @@ router.get("/movimientos/getPDF/:id", auth, async (req, res) => {
             }
 
             let pdfLocation = process.cwd()+"\\pdfTemplates\\movementPDF.html"
+            console.log("localizacion pdf"+pdfLocation)
             var html = fs.readFileSync(pdfLocation, 'utf8');
 
             let movimiento = await Movimiento.findOne({_id:req.params.id, owner:owner}).populate('itemsDiferencia').populate('destino').populate('origen');
