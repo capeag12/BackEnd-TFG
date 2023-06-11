@@ -123,7 +123,7 @@ router.get("/usuarios/me", auth, async (req, res) => {
 router.get("/usuarios/me/avatar", auth, async (req, res) => {
     try{
         if(req.usuario){
-            let imgLocation = process.cwd()+"\\uploads\\"+req.usuario.avatar;
+            let imgLocation = process.cwd()+"/uploads/"+req.usuario.avatar;
             if(fs.existsSync(imgLocation)){
                 return res.status(200).sendFile(imgLocation)
             } else{
