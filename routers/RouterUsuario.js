@@ -146,7 +146,7 @@ const storage = multer.diskStorage({
     },
     filename: function (req, file, cb) {
         let name =req.usuario._id + path.extname(file.originalname)
-        let imgLocation = process.cwd()+"\\uploads\\"+req.usuario.avatar;
+        let imgLocation = process.cwd()+"/uploads/"+req.usuario.avatar;
         let exist = fs.existsSync(imgLocation);
         if(exist){
             fs.unlinkSync(imgLocation);

@@ -80,7 +80,7 @@ router.get("/movimientos/getPDF/:id", auth, async (req, res) => {
                 owner = req.permiso.owner;
             }
 
-            let pdfLocation = process.cwd()+"\\pdfTemplates\\movementPDF.html"
+            let pdfLocation = process.cwd()+"/pdfTemplates/movementPDF.html"
             console.log("localizacion pdf"+pdfLocation)
             var html = fs.readFileSync(pdfLocation, 'utf8');
 
