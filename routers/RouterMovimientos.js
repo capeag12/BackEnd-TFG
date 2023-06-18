@@ -145,14 +145,7 @@ router.get("/movimientos/getPDF/:id", auth, async (req, res) => {
                                 </div>`
                 },
 
-                footer: {
-                    height: "30mm",
-                    contents: {
-                        default:`<div class="footer">
-                                    <p>Footer</p>
-                                </div>`
-                    }
-                }
+            
             }
 
             var document = {

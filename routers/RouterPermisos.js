@@ -12,7 +12,7 @@ const jwt = require('jsonwebtoken');
 const { default: mongoose } = require('mongoose');
 
 router.post("/usuario/crearPermiso", auth, async (req, res) => {
-    console.log(req.permiso.tipo);
+    
     try {
         if (req.usuario) {
             console.log("req.usuario._id: " + req.usuario);
