@@ -164,18 +164,23 @@ const storage = multer.diskStorage({
 
 router.patch("/usuarios/me/avatar", auth, async (req, res) => {
     if (req.usuario) {
+        let boolError = false;
         realizeUpload(req, res, async function (err) {
             if (err instanceof multer.MulterError) {
-            console.log(err);
-              return res.status(500).json(err);
+                boolError = true;
             } else if (err) {
-                console.log(err);
-                return res.status(500).json(err);
+                boolError = true;
             }
+            
         });
     
         try {
-            res.status(200).send({msg:'Avatar cargado correctamente'});
+            if(boolError){
+                res.status(500).send({error:'No se pudo cargar correctamente el nuuevo avatar'});
+            } else{
+                res.status(200).send({msg:'Avatar cargado correctamente'});
+            }
+            
         }
         catch (error) {
             console.log(error);

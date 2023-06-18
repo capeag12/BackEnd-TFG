@@ -54,9 +54,13 @@ router.delete("/almacenes/eliminarAlmacen/:id", auth, async (req, res) => {
             } else{
                 owner = req.permiso.owner;
             }
+            console.log(owner);
+            console.log(req.params.id);
 
-            const almacen = await Almacen.findOneAndDelete({_id: req.params.id, owner: owner});
+            const almacen = await Almacen.findOne({_id: req.params.id, owner: owner});
+            console.log(almacen);
             await almacen.deleteAllAlmacenItems();
+            Almacen.deleteOne({_id: almacen._id, owner: owner});
             if (!almacen) {
                 return res.status(404).send();
             }
