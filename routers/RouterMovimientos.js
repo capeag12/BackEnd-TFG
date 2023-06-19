@@ -232,7 +232,7 @@ router.patch("/movimientos/actualizarEnvio/:id", auth, async (req, res) => {
                 owner = req.permiso.owner;
             }
             let objId = new mongoose.mongo.ObjectId(req.params.id)
-            let envio = await Envio.findOne({_id: objId, owner: req.usuario._id})
+            let envio = await Envio.findOne({_id: objId, owner: owner})
             if (!envio) {
                 return res.status(404).send({error: "No se encontro el envio"})
             } else{
